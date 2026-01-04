@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>DASHBOARD | Apex Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --apex-red: #DA292A;
+            --apex-dark: #121212;
+            --card-bg: #1E1E1E;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--apex-dark);
+            color: white;
+            margin: 0;
+        }
+
+        nav {
+            background: rgba(0, 0, 0, 0.9);
+            border-bottom: 2px solid var(--apex-red);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-links a {
+            color: white;
+            margin-left: 20px;
+            text-decoration: none;
+            font-family: 'Teko', sans-serif;
+            font-size: 1.4rem;
+        }
+
+        .active {
+            color: var(--apex-red) !important;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .grid-dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .section-title {
+            font-family: 'Teko';
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            border-left: 5px solid var(--apex-red);
+            padding-left: 15px;
+            text-transform: uppercase;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid #333;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--apex-red);
+        }
+
+        /* Maps */
+        .map-card {
+            text-align: center;
+        }
+
+        .map-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            filter: brightness(0.7);
+        }
+
+        .map-name {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: var(--apex-red);
+            padding: 5px 10px;
+            font-weight: bold;
+            font-family: 'Teko';
+            font-size: 1.2rem;
+        }
+
+        .map-timer {
+            padding: 10px;
+            font-size: 1.1rem;
+            color: #aaa;
+        }
+
+        .current-tag {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #00ff00;
+            color: black;
+            padding: 2px 8px;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        /* Predator */
+        .pred-val {
+            font-size: 3rem;
+            font-family: 'Teko';
+            color: var(--apex-red);
+        }
+
+        .pred-plat {
+            font-size: 1rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        /* Crafting */
+        .crafting-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            padding: 0px;
+        }
+
+        .craft-item {
+            background: #252525;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .craft-img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+        }
+
+        /* News */
+        .news-item {
+            padding: 15px;
+            border-bottom: 1px solid #333;
+        }
+
+        .news-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            display: block;
+            color: white;
+            text-decoration: none;
+        }
+
+        .news-title:hover {
+            color: var(--apex-red);
+        }
+
+        .news-date {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        /* Server Status */
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+        }
+
+        .status-item {
+            background: #252525;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .status-name {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+
+        .status-val {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .up {
+            color: #00ff00;
+        }
+
+        .slow {
+            color: #ffa500;
+        }
+
+        .down {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <div style="font-family: 'Teko'; font-size: 1.5rem;">APEX DASHBOARD</div>
+        <div class="nav-links">
+            <a href="/">STATS</a>
+            <a href="/compare">COMPARE</a>
+            <a href="/live">LIVE</a>
+            <a href="/dashboard" class="active">DASHBOARD</a>
+        </div>
+    </nav>
+
+    <div class="container">
+
+        <!-- ROW 1: MAps & Predator -->
+        <div class="grid-dashboard" style="margin-bottom: 40px;">
+
+            <!-- Battle Royale Map -->
+            <div>
+                <div class="section-title">Battle Royale Map</div>
+                {% if maps and maps.battle_royale %}
+                <div class="card map-card">
+                    <img src="{{ maps.battle_royale.current.asset }}" class="map-img">
+                    <span class="map-name">{{ maps.battle_royale.current.map }}</span>
+                    <span class="current-tag">NOW</span>
+                    <div class="map-timer">Remains: {{ maps.battle_royale.current.remainingTimer }}</div>
+                </div>
+                <div class="card map-card" style="margin-top: 10px; opacity: 0.6;">
+                    <div style="padding: 10px;">Next: {{ maps.battle_royale.next.map }}</div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Ranked Map -->
+            <div>
+                <div class="section-title">Ranked Map</div>
+                {% if maps and maps.ranked %}
+                <div class="card map-card">
+                    <img src="{{ maps.ranked.current.asset }}" class="map-img"
+                        onerror="this.src='https://trackercdn.com/cdn/apex.png'">
+                    <span class="map-name">{{ maps.ranked.current.map }}</span>
+                    <span class="current-tag">NOW</span>
+                    <div class="map-timer">Ends: {{ maps.ranked.current.remainingTimer }}</div>
+                </div>
+
+                {% if maps.ranked.next %}
+                <div class="card map-card" style="margin-top: 10px; opacity: 0.6;">
+                    <div style="padding: 10px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                        <span>Next: <strong>{{ maps.ranked.next.map }}</strong></span>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% endif %}
+            </div>
+
+            <!-- Predator Cap -->
+            <div>
+                <div class="section-title">Predator Cap</div>
+                <div class="card" style="padding: 20px; text-align: center;">
+                    {% if predator %}
+                    <div style="margin-bottom: 10px;">
+                        <div class="pred-plat">PC</div>
+                        <div class="pred-val">{{ predator.RP.PC.val }} RP</div>
+                    </div>
+                    <div style="border-top: 1px solid #333; padding-top: 10px;">
+                        <div class="pred-plat">PlayStation</div>
+                        <div class="pred-val" style="font-size: 2rem;">{{ predator.RP.PS4.val }} RP</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Server Status (New) -->
+            <div style="grid-column: span 3;">
+                <div class="section-title">System Status</div>
+                <div class="card" style="padding: 15px;">
+                    <div class="status-grid">
+                        {% if server_status %}
+                        <!-- Manually picking key services with safety checks -->
+                        <div class="status-item">
+                            <div class="status-name">Origin Login</div>
+                            {% set s = server_status.get('Origin_login', {}).get('Status', 'UNKNOWN') %}
+                            <div class="status-val {{ 'up' if s == 'UP' else 'down' }}">
+                                {{ s }}
+                            </div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-name">Crossplay Auth</div>
+                            {% set s = server_status.get('ApexOauth_Crossplay', {}).get('Status', 'UNKNOWN') %}
+                            <div class="status-val {{ 'up' if s == 'UP' else 'down' }}">
+                                {{ s }}
+                            </div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-name">EA Accounts</div>
+                            {% set s = server_status.get('EA_accounts', {}).get('Status', 'UNKNOWN') %}
+                            <div class="status-val {{ 'up' if s == 'UP' else 'down' }}">
+                                {{ s }}
+                            </div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-name">Xbox API</div>
+                            {% set s = server_status.get('Xbox-API', {}).get('Status', 'UNKNOWN') %}
+                            <div class="status-val {{ 'up' if s == 'UP' else 'slow' }}">
+                                {{ s }}
+                            </div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-name">PlayStation API</div>
+                            {% set s = server_status.get('Playstation-API', {}).get('Status', 'UNKNOWN') %}
+                            <div class="status-val {{ 'up' if s == 'UP' else 'slow' }}">
+                                {{ s }}
+                            </div>
+                        </div>
+                        {% else %}
+                        <div>Loading status...</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ROW 2: Crafting & News -->
+        <div class="grid-dashboard">
+
+            <!-- Crafting -->
+            <div>
+                <div class="section-title">Daily Crafting</div>
+                <div class="card">
+                    <div class="crafting-grid">
+                        {% if crafting %}
+                        {% for bundle in crafting %}
+                        {% for item in bundle.bundleContent %}
+                        <div class="craft-item">
+                            <img src="{{ item.itemType.asset }}" class="craft-img">
+                            <div style="font-size: 0.8rem; margin-top: 5px;">{{ item.itemType.name }}</div>
+                            <div style="color: #aaa; font-size: 0.8rem;">{{ item.cost }} pts</div>
+                        </div>
+                        {% endfor %}
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- News -->
+            <div style="grid-column: span 2;">
+                <div class="section-title">Latest News</div>
+                <div class="card">
+                    {% if news %}
+                    {% for article in news[:3] %}
+                    <div class="news-item">
+                        <a href="{{ article.link }}" target="_blank" class="news-title">{{ article.title }}</a>
+                        <div class="news-date">{{ article.date }}</div>
+                        <p style="font-size: 0.9rem; color: #ccc;">{{ article.short_desc }}</p>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</body>
+
+</html>

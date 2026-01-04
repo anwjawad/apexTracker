@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>LIVE SESSION | Apex Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Shared Styles */
+        :root {
+            --apex-red: #DA292A;
+            --apex-dark: #121212;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--apex-dark);
+            color: white;
+            margin: 0;
+        }
+
+        nav {
+            background: rgba(0, 0, 0, 0.8);
+            border-bottom: 2px solid var(--apex-red);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .nav-links a {
+            color: white;
+            margin-left: 20px;
+            text-decoration: none;
+            font-family: 'Teko', sans-serif;
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+
+        .active {
+            color: var(--apex-red) !important;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            text-align: center;
+        }
+
+        .session-card {
+            background: #1e1e1e;
+            padding: 40px;
+            border-radius: 10px;
+            border: 1px solid #333;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .counter-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .live-stat {
+            background: #252525;
+            padding: 20px;
+            border-left: 5px solid var(--apex-red);
+        }
+
+        .live-label {
+            color: #888;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .live-val {
+            font-size: 4rem;
+            font-family: 'Teko';
+            color: white;
+            margin: 10px 0;
+        }
+
+        .live-gain {
+            color: #00ff00;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        input {
+            padding: 10px;
+            width: 60%;
+            background: #333;
+            color: white;
+            border: none;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: var(--apex-red);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-family: 'Teko';
+            font-size: 1.2rem;
+        }
+
+        #status-light {
+            width: 15px;
+            height: 15px;
+            background: #333;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .online {
+            background: #00ff00 !important;
+            box-shadow: 0 0 10px #00ff00;
+        }
+
+        .loading {
+            background: yellow !important;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <div style="font-family: 'Teko'; font-size: 1.5rem;">APEX LIVE</div>
+        <div class="nav-links">
+            <a href="/">STATS</a>
+            <a href="/compare">COMPARE</a>
+            <a href="/live" class="active">LIVE</a>
+            <a href="/dashboard">DASHBOARD</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 style="font-family: 'Teko'; font-size: 4rem; margin-bottom: 10px;">SESSION TRACKER</h1>
+        <p style="color: #888;">Keep this page open on your second monitor. Updates every 3 minutes.</p>
+
+        <!-- Setup Phase -->
+        <div id="setup-panel" class="session-card">
+            <h2>START SESSION</h2>
+            <input type="text" id="player-input" placeholder="Enter Username...">
+            <button onclick="startSession()">GO LIVE</button>
+        </div>
+
+        <!-- Live Phase -->
+        <div id="live-panel" class="session-card" style="display: none;">
+            <div style="text-align: left; margin-bottom: 20px; display: flex; align-items: center;">
+                <span id="status-light"></span>
+                <span id="status-text">LIVE - Monitoring...</span>
+                <button onclick="refreshStats()" style="margin-left: auto; padding: 5px 15px; font-size: 1rem;">FORCE
+                    REFRESH</button>
+            </div>
+
+            <h2 id="player-name-display" style="color: var(--apex-red);">PLAYER</h2>
+
+            <div class="counter-grid">
+                <div class="live-stat">
+                    <div class="live-label">RP GAIN</div>
+                    <div class="live-val" id="rp-gain">0</div>
+                    <div class="live-gain">Current: <span id="rp-current">0</span></div>
+                </div>
+
+                <!-- Note: Kills are often harder to track live accurately without specific legend endpoints, 
+                     but we will try using global rank score as the main metric -->
+                <div class="live-stat">
+                    <div class="live-label">LEVEL GAIN</div>
+                    <div class="live-val" id="lvl-gain">0</div>
+                    <div class="live-gain">Current: <span id="lvl-current">0</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let initialStats = null;
+        let pName = '';
+        let timer = null;
+
+        async function fetchStats(name) {
+            try {
+                const res = await fetch(`/api/stats?player=${name}`);
+                const data = await res.json();
+                if (data.error) throw data.error;
+                return data;
+            } catch (e) {
+                alert("Error fetching stats: " + e);
+                return null;
+            }
+        }
+
+        async function startSession() {
+            pName = document.getElementById('player-input').value;
+            if (!pName) return;
+
+            document.getElementById('status-light').className = 'loading';
+
+            const stats = await fetchStats(pName);
+            if (stats) {
+                initialStats = stats;
+                document.getElementById('setup-panel').style.display = 'none';
+                document.getElementById('live-panel').style.display = 'block';
+                document.getElementById('player-name-display').innerText = stats.global.name;
+                updateDisplay(stats);
+
+                document.getElementById('status-light').className = 'online';
+
+                // Auto refresh every 3 minutes
+                timer = setInterval(refreshStats, 180000);
+            }
+        }
+
+        async function refreshStats() {
+            document.getElementById('status-light').className = 'loading';
+            document.getElementById('status-text').innerText = "Updating...";
+
+            const currentStats = await fetchStats(pName);
+
+            if (currentStats) {
+                updateDisplay(currentStats);
+                document.getElementById('status-light').className = 'online';
+                document.getElementById('status-text').innerText = "LIVE - Monitoring...";
+            }
+        }
+
+        function updateDisplay(current) {
+            // RP
+            const startRP = initialStats.global.rank.rankScore;
+            const currRP = current.global.rank.rankScore;
+            const diffRP = currRP - startRP;
+
+            document.getElementById('rp-current').innerText = currRP;
+            document.getElementById('rp-gain').innerText = (diffRP > 0 ? "+" : "") + diffRP;
+            document.getElementById('rp-gain').style.color = diffRP >= 0 ? "#00ff00" : "red";
+
+            // Level
+            const startLvl = initialStats.global.level;
+            const currLvl = current.global.level;
+            const diffLvl = currLvl - startLvl;
+
+            document.getElementById('lvl-current').innerText = currLvl;
+            document.getElementById('lvl-gain').innerText = "+" + diffLvl;
+        }
+    </script>
+</body>
+
+</html>

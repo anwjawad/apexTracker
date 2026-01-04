@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apex Legends Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --apex-red: #DA292A;
+            --apex-dark: #121212;
+            --apex-gray: #2B2B2B;
+            --text-main: #FDFDFD;
+            --text-dim: #A0A0A0;
+            --card-border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--apex-dark);
+            color: var(--text-main);
+            margin: 0;
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(218, 41, 42, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(218, 41, 42, 0.1) 0%, transparent 20%);
+            min-height: 100vh;
+        }
+
+        h1,
+        h2,
+        h3,
+        .apex-font {
+            font-family: 'Teko', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Navigation */
+        nav {
+            background: rgba(0, 0, 0, 0.8);
+            border-bottom: 2px solid var(--apex-red);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            color: var(--text-main);
+            text-decoration: none;
+            font-family: 'Teko', sans-serif;
+            font-size: 1.4rem;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--apex-red);
+        }
+
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--apex-red);
+            box-shadow: 0 0 10px var(--apex-red);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        /* Search Box - Angled Style */
+        .search-container {
+            background: var(--apex-gray);
+            padding: 30px;
+            clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
+            border-left: 5px solid var(--apex-red);
+            margin-bottom: 50px;
+            position: relative;
+        }
+
+        .search-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, transparent 50%, var(--apex-red) 50%);
+        }
+
+        .search-form {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        input,
+        select {
+            background: #1a1a1a;
+            border: 1px solid #444;
+            color: white;
+            padding: 15px;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 1rem;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        button {
+            background: var(--apex-red);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-family: 'Teko', sans-serif;
+            font-size: 1.5rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: transform 0.2s, background 0.2s;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+
+        button:hover {
+            background: #ff3334;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(218, 41, 42, 0.5);
+        }
+
+        /* Stats Display */
+        .player-hero {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 40px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .player-avatar img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 3px solid var(--apex-red);
+            box-shadow: 0 0 20px rgba(218, 41, 42, 0.3);
+        }
+
+        .player-info h1 {
+            font-size: 4rem;
+            margin: 0;
+            line-height: 1;
+        }
+
+        .player-badges {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .badge {
+            background: #333;
+            padding: 5px 15px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            border: 1px solid #555;
+        }
+
+        /* Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: rgba(43, 43, 43, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--apex-red);
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--apex-red);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover::after {
+            transform: scaleX(1);
+        }
+
+        .stat-title {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-family: 'Teko', sans-serif;
+            color: white;
+            font-weight: 700;
+        }
+
+        .rank-image {
+            width: 80px;
+            margin-bottom: 15px;
+        }
+
+        /* Legends Section */
+        .legends-section {
+            margin-top: 60px;
+        }
+
+        .legends-header {
+            border-bottom: 1px solid #444;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+
+        .legend-highlight {
+            background: linear-gradient(45deg, #1a1a1a, #252525);
+            border-left: 4px solid var(--apex-red);
+            padding: 30px;
+            display: flex;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .legend-img-large {
+            width: 300px;
+            filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.8));
+            transition: transform 0.3s;
+        }
+
+        .legend-img-large:hover {
+            transform: scale(1.05);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .error-msg {
+            background: rgba(218, 41, 42, 0.1);
+            border: 1px solid var(--apex-red);
+            color: var(--apex-red);
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        /* Status Indicator CSS - Was missing */
+        .status-dot {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            margin-right: 15px;
+            box-shadow: 0 0 5px currentColor;
+        }
+
+        .status-online {
+            color: #00ff00;
+            background: #00ff00;
+            box-shadow: 0 0 10px #00ff00;
+            animation: pulse 2s infinite;
+        }
+
+        .status-ingame {
+            color: #ff0000;
+            background: #ff0000;
+            box-shadow: 0 0 10px #ff0000;
+            animation: pulse 1s infinite;
+        }
+
+        .status-offline {
+            color: #555;
+            background: #555;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.7;
+                transform: scale(1.1);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <div style="font-size: 1.8rem; font-weight: bold; color: white;" class="apex-font">
+            <span style="color: var(--apex-red)">APEX</span> TRACKER
+        </div>
+        <div class="nav-links">
+            <a href="/" class="active">STATS</a>
+            <a href="/compare">COMPARE</a>
+            <a href="/live">LIVE</a>
+            <a href="/dashboard">DASHBOARD</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Search -->
+        <div class="search-container">
+            <h2 style="margin-top: 0; color: var(--text-dim)">TRACK PLAYER</h2>
+            <form class="search-form" method="POST" action="/">
+                <input type="text" name="player_name" placeholder="Origin / PSN / Xbox Username..." required>
+                <select name="platform" style="flex: 0 0 150px;">
+                    <option value="PC">PC</option>
+                    <option value="PS4">PlayStation</option>
+                    <option value="X1">Xbox</option>
+                </select>
+                <button type="submit">SEARCH <i class="fas fa-search"></i></button>
+            </form>
+        </div>
+
+        {% if error %}
+        <div class="error-msg">
+            <i class="fas fa-exclamation-triangle"></i> {{ error }}
+        </div>
+        {% endif %}
+
+        {% if stats %}
+        <!-- Status Logic -->
+        {% set status_class = 'status-offline' %}
+        {% set status_text = 'OFFLINE' %}
+
+        {% if stats.realtime %}
+        {% if stats.realtime.isOnline == 1 %}
+        {% set status_class = 'status-online' %}
+        {% set status_text = 'ONLINE' %}
+        {% endif %}
+        {% if stats.realtime.isInGame == 1 %}
+        {% set status_class = 'status-ingame' %}
+        {% set status_text = 'IN MATCH' %}
+        {% endif %}
+        {% endif %}
+
+        <!-- Main Profile Info -->
+        <div class="player-hero">
+            <div class="player-avatar">
+                <img src="{{ stats.global.avatar if stats.global.avatar else 'https://trackercdn.com/cdn/apex.png' }}"
+                    alt="Avatar">
+            </div>
+            <div class="player-info">
+                <h1 style="display: flex; align-items: center;">
+                    <span class="status-dot {{ status_class }}" title="{{ status_text }}"></span>
+                    {{ stats.global.name }}
+                </h1>
+                {% if stats.global.bans.isActive %}
+                <div style="color: var(--apex-red); font-weight: bold; margin-top: -10px; margin-bottom: 10px;">🚫
+                    BANNED</div>
+                {% endif %}
+                <div class="player-badges">
+                    <div class="badge">
+                        Level {{ stats.global.level }}
+                        <!-- Level Progress -->
+                        <div class="progress-container" title="{{ stats.global.toNextLevelPercent }}% to next level">
+                            <div class="progress-bar" style="width: {{ stats.global.toNextLevelPercent }}%;"></div>
+                        </div>
+                    </div>
+                    <div class="badge">{{ stats.global.platform }}</div>
+
+                    <!-- Overlay Button -->
+                    <a href="/overlay?player={{ stats.global.name }}&platform={{ stats.global.platform }}"
+                        target="_blank" class="badge"
+                        style="background: var(--apex-red); color: white; border-color: var(--apex-red); text-decoration: none; display: flex; align-items: center; gap: 5px;">
+                        <i class="fas fa-video"></i> OBS Overlay
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Stats Grid -->
+        <h2 class="legends-header apex-font">PERFORMANCE</h2>
+        <div class="stats-grid">
+            <!-- Rank -->
+            <div class="stat-card">
+                <div class="stat-title">Battle Royale Rank</div>
+                <img src="{{ stats.global.rank.rankImg }}" alt="Rank" class="rank-image">
+                <div class="stat-value">{{ stats.global.rank.rankScore | int }}</div>
+                <div style="color: var(--apex-red)">{{ stats.global.rank.rankName }} #{{
+                    stats.global.rank.ladderPosPlatform }}</div>
+            </div>
+
+            <!-- Arena Rank -->
+            <div class="stat-card">
+                <div class="stat-title">Arena Rank</div>
+                <img src="{{ stats.global.arena.rankImg }}" alt="Rank" class="rank-image">
+                <div class="stat-value">{{ stats.global.arena.rankScore }}</div>
+                <div style="color: var(--apex-red)">{{ stats.global.arena.rankName }}</div>
+            </div>
+
+            <!-- Total Kills (if available directly or summed) -->
+            {% if stats.total.kills %}
+            <div class="stat-card">
+                <div class="stat-title">Lifetime Kills</div>
+                <div class="stat-value">{{ stats.total.kills.value }}</div>
+            </div>
+            {% endif %}
+
+            {% if stats.total.damage %}
+            <div class="stat-card">
+                <div class="stat-title">Lifetime Damage</div>
+                <div class="stat-value">{{ stats.total.damage.value }}</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Selected Legend Showcase -->
+        {% if stats.legends and stats.legends.selected %}
+        <div class="legends-section">
+            <h2 class="legends-header apex-font">ACTIVE LEGEND: <span style="color: var(--apex-red)">{{
+                    stats.legends.selected.LegendName }}</span></h2>
+
+            <div class="legend-highlight">
+                <div class="legend-visual">
+                    <!-- Usually api returns specific images for the legend -->
+                    {% if stats.legends.selected.ImgAssets and stats.legends.selected.ImgAssets.icon %}
+                    <img src="{{ stats.legends.selected.ImgAssets.icon }}" class="legend-img-large" alt="Legend">
+                    {% endif %}
+                </div>
+                <div class="legend-stats">
+                    <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr); gap: 30px;">
+                        {% for data_point in stats.legends.selected.data %}
+                        <div>
+                            <div class="stat-title">{{ data_point.name }}</div>
+                            <div class="stat-value" style="font-size: 3rem;">{{ data_point.value }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Match History -->
+        {% if stats and stats.history %}
+        <div style="margin-top: 40px;">
+            <div
+                style="font-family: 'Teko'; font-size: 2.5rem; border-left: 5px solid white; padding-left: 15px; margin-bottom: 20px;">
+                MATCH HISTORY
+            </div>
+            <table style="width: 100%; border-collapse: collapse; background: #1e1e1e;">
+                <thead>
+                    <tr style="background: #333; text-align: left;">
+                        <th style="padding: 10px;">LEGEND</th>
+                        <th style="padding: 10px;">MODE</th>
+                        <th style="padding: 10px;">DATE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for match in stats.history %}
+                    <tr style="border-bottom: 1px solid #333;">
+                        <td style="padding: 10px;">{{ match.legend_played }}</td>
+                        <td style="padding: 10px;">{{ match.gameMode }}</td>
+                        <td style="padding: 10px; color: #888;">{{ match.date }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        {% endif %}
+    </div>
+
+</body>
+
+</html>

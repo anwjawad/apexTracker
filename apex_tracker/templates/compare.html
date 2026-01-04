@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>SQUAD COMPARISON | Apex Tracker</title>
+    <!-- Reusing same styles for consistency -->
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Base styles copied or we could extract to styles.css */
+        :root {
+            --apex-red: #DA292A;
+            --apex-dark: #121212;
+            --text-main: #FDFDFD;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--apex-dark);
+            color: var(--text-main);
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        nav {
+            background: rgba(0, 0, 0, 0.8);
+            border-bottom: 2px solid var(--apex-red);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .nav-links a {
+            color: white;
+            margin-left: 20px;
+            text-decoration: none;
+            font-family: 'Teko', sans-serif;
+            font-size: 1.4rem;
+        }
+
+        .active {
+            color: var(--apex-red) !important;
+        }
+
+        .apex-header {
+            font-family: 'Teko', sans-serif;
+            font-size: 3rem;
+            text-align: center;
+            margin: 30px 0;
+            text-transform: uppercase;
+        }
+
+        .comparison-arena {
+            display: flex;
+            min-height: 80vh;
+            position: relative;
+        }
+
+        .vs-badge {
+            position: absolute;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--apex-red);
+            color: white;
+            font-family: 'Teko', sans-serif;
+            font-size: 3rem;
+            padding: 10px 20px;
+            border-radius: 50%;
+            z-index: 10;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .player-side {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: background 0.3s;
+        }
+
+        .player-left {
+            border-right: 1px solid #333;
+        }
+
+        .player-right {
+            border-left: 1px solid #333;
+        }
+
+        .player-side:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .stat-row {
+            width: 100%;
+            max-width: 400px;
+            background: #222;
+            margin-bottom: 10px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+
+        .stat-label {
+            color: #888;
+            font-weight: bold;
+        }
+
+        .stat-val {
+            font-family: 'Teko';
+            font-size: 1.8rem;
+        }
+
+        .winner {
+            border: 1px solid rgb(62, 218, 62);
+            color: rgb(62, 218, 62);
+        }
+
+        .input-form {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        input {
+            padding: 10px;
+            background: #333;
+            border: 1px solid #555;
+            color: white;
+        }
+
+        button {
+            padding: 10px 30px;
+            background: var(--apex-red);
+            border: none;
+            color: white;
+            font-family: 'Teko';
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <div style="font-family: 'Teko'; font-size: 1.5rem;">APEX TRACKER</div>
+        <div class="nav-links">
+            <a href="/">STATS</a>
+            <a href="/compare" class="active">COMPARE</a>
+            <a href="/live">LIVE</a>
+            <a href="/dashboard">DASHBOARD</a>
+        </div>
+    </nav>
+
+    <div class="apex-header">Squad Comparison</div>
+
+    {% if not stats1 %}
+    <div class="input-form">
+        <form method="POST">
+            <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px;">
+                <!-- Player 1 -->
+                <input type="text" name="player1_name" placeholder="Player 1" required>
+                <select name="player1_platform" style="width: auto; min-width: 80px;">
+                    <option value="PC">PC</option>
+                    <option value="PS4">PSN</option>
+                    <option value="X1">Xbox</option>
+                </select>
+            </div>
+
+            <div style="font-family: 'Teko'; font-size: 2rem; margin: 10px 0;">VS</div>
+
+            <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px;">
+                <!-- Player 2 -->
+                <input type="text" name="player2_name" placeholder="Player 2" required>
+                <select name="player2_platform" style="width: auto; min-width: 80px;">
+                    <option value="PC">PC</option>
+                    <option value="PS4">PSN</option>
+                    <option value="X1">Xbox</option>
+                </select>
+            </div>
+
+            <button type="submit">FIGHT!</button>
+        </form>
+    </div>
+    {% endif %}
+
+    {% if error %}
+    <div style="text-align: center; color: var(--apex-red);">{{ error }}</div>
+    {% endif %}
+
+    {% if stats1 and stats2 %}
+    <div class="comparison-arena">
+        <div class="vs-badge">VS</div>
+
+        <!-- Player 1 -->
+        <div class="player-side player-left">
+            <img src="{{ stats1.global.rank.rankImg }}" width="100">
+            <h1>{{ stats1.global.name }}</h1>
+
+            <div class="stat-row {% if stats1.global.level > stats2.global.level %}winner{% endif %}">
+                <span class="stat-label">LEVEL</span>
+                <span class="stat-val">{{ stats1.global.level }}</span>
+            </div>
+
+            <div class="stat-row {% if stats1.global.rank.rankScore > stats2.global.rank.rankScore %}winner{% endif %}">
+                <span class="stat-label">RANK SCORE</span>
+                <span class="stat-val">{{ stats1.global.rank.rankScore }}</span>
+            </div>
+        </div>
+
+        <!-- Player 2 -->
+        <div class="player-side player-right">
+            <img src="{{ stats2.global.rank.rankImg }}" width="100">
+            <h1>{{ stats2.global.name }}</h1>
+
+            <div class="stat-row {% if stats2.global.level > stats1.global.level %}winner{% endif %}">
+                <span class="stat-label">LEVEL</span>
+                <span class="stat-val">{{ stats2.global.level }}</span>
+            </div>
+
+            <div class="stat-row {% if stats2.global.rank.rankScore > stats1.global.rank.rankScore %}winner{% endif %}">
+                <span class="stat-label">RANK SCORE</span>
+                <span class="stat-val">{{ stats2.global.rank.rankScore }}</span>
+            </div>
+        </div>
+    </div>
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="/compare" style="color: white; text-decoration: underline;">New Comparison</a>
+    </div>
+    {% endif %}
+
+</body>
+
+</html>

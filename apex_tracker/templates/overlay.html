@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Apex Overlay</title>
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            /* Allows OBS to remove background if needed */
+            font-family: 'Teko', sans-serif;
+            color: white;
+            overflow: hidden;
+        }
+
+        .overlay-container {
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.7);
+            border-left: 5px solid #DA292A;
+            padding: 10px 20px;
+            width: fit-content;
+            border-radius: 0 10px 10px 0;
+            animation: slideIn 1s;
+        }
+
+        .rank-icon {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            margin-right: 15px;
+        }
+
+        .info-block {
+            margin-right: 20px;
+        }
+
+        .label {
+            font-size: 1rem;
+            color: #ccc;
+            text-transform: uppercase;
+            line-height: 1;
+        }
+
+        .value {
+            font-size: 2.2rem;
+            font-weight: bold;
+            line-height: 1;
+            text-shadow: 2px 2px 0px #000;
+        }
+
+        .highlight {
+            color: #DA292A;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(-100%);
+            }
+
+            to {
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="overlay-container">
+        <!-- Rank Icon -->
+        <img src="{{ stats.global.rank.rankImg }}" class="rank-icon">
+
+        <!-- RP -->
+        <div class="info-block">
+            <div class="label">Ranked Points</div>
+            <div class="value">{{ stats.global.rank.rankScore }} <span style="font-size: 1.2rem;">RP</span></div>
+        </div>
+
+        <!-- Selected Legend Kills (if available) -->
+        {% if stats.legends and stats.legends.selected %}
+        <div class="info-block" style="border-left: 1px solid #555; padding-left: 15px;">
+            <div class="label">{{ stats.legends.selected.LegendName }}</div>
+            <!-- Try to find Kills data specifically -->
+            {% set kills = 'N/A' %}
+            {% for d in stats.legends.selected.data %}
+            {% if d.name == 'Kills' %}
+            {% set kills = d.value %}
+            {% endif %}
+            {% endfor %}
+            <div class="value highlight">{{ kills }} <span style="font-size: 1.2rem; color: white;">KILLS</span></div>
+        </div>
+        {% endif %}
+    </div>
+</body>
+
+</html>
